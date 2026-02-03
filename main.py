@@ -4,6 +4,7 @@ from sqlalchemy import create_engine, text
 from datetime import date
 import plotly.express as px
 import io
+import os
 
 # --- CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(page_title="Lab Digital Pro - Tabancura", layout="wide", page_icon="🦷")
@@ -15,14 +16,33 @@ OPCIONES_TONS = ["Sasha U.", "Martina T.", "Valentina S.", "Javiera P.", "Álvar
 OPCIONES_SUCURSAL = ["Sucursal Los Tribunales", "Sucursal Vitacura"]
 OPCIONES_MATERIAL = ["Disilicato A3", "Hibrido A3", "Híbrido A2", "Disilicato A2", "Disilicato A1", "Disilicato", "Híbrido A1", "PMMA"]
 OPCIONES_DISENO = ["Modalidad Chairside", "Diseñado por David", "Diseñado por Pauline", "Diseñado por Antonio", "Diseñado por Grace", "Diseñado por Sebastian"]
-# Nuevas opciones para bloques
 OPCIONES_BLOQUES = ["1 bloque", "2 bloques", "3 bloques", "4 bloques", "5 o más bloques"]
 
-# --- 2. CONEXIÓN A BASE DE DATOS ---
+# --- 2. CONEXIÓN A BASE DE DATOS (MÉTODO ROBUSTO) ---
 def get_engine():
-    pg = st.secrets["postgres"]
-    url = f"postgresql://{pg['user']}:{pg['password']}@{pg['host']}:{pg['port']}/{pg['database']}"
-    return create_engine(url)
+    host = os.getenv("POSTGRES_HOST")
+    if host:
+        database = os.getenv("POSTGRES_DATABASE")
+        user = os.getenv("POSTGRES_USER")
+        password = os.getenv("POSTGRES_PASSWORD")
+        port = os.getenv("POSTGRES_PORT", "5432")
+    else:
+        try:
+            if "postgres" in st.secrets:
+                pg = st.secrets["postgres"]
+                host = pg.get("host")
+                database = pg.get("database")
+                user = pg.get("user")
+                password = pg.get("password")
+                port = pg.get("port", "5432")
+            else: return None
+        except: return None
+
+    if not host: return None
+    try:
+        url = f"postgresql://{user}:{password}@{host}:{port}/{database}"
+        return create_engine(url, pool_pre_ping=True)
+    except: return None
 
 engine = get_engine()
 
@@ -45,32 +65,42 @@ def safe_date(date_str):
     except: return None
 
 def cargar_datos_formateados():
-    df = pd.read_sql("SELECT * FROM registros ORDER BY identificador DESC", engine)
-    renombre = {
-        'identificador': 'N° Identificador', 'fecha_ingreso': 'Fecha de ingreso',
-        'estado': 'Estado', 'nombre_paciente': 'Nombre paciente',
-        'doctor': 'Doctor', 'tons_a_cargo': 'Tons a cargo',
-        'fecha_diseno': 'Fecha de diseño', 'fecha_fresado': 'Fecha de fresado',
-        'fecha_entrega': 'Fecha de entrega', 'sucursal': 'Sucursal',
-        'asunto_detalles': 'Asunto / Detalles', 'material': 'Material',
-        'diseno': 'Diseño', 'bloques_usados': 'Bloques usados'
-    }
-    df = df.rename(columns=renombre)
-    orden = ['N° Identificador', 'Fecha de ingreso', 'Estado', 'Nombre paciente', 'Doctor', 'Tons a cargo', 
-             'Fecha de diseño', 'Fecha de fresado', 'Fecha de entrega', 'Sucursal', 'Asunto / Detalles', 
-             'Material', 'Diseño', 'Bloques usados']
-    return df[[c for c in orden if c in df.columns]]
+    if engine is None: return pd.DataFrame()
+    try:
+        df = pd.read_sql("SELECT * FROM registros ORDER BY identificador DESC", engine)
+        renombre = {
+            'identificador': 'N° Identificador', 'fecha_ingreso': 'Fecha de ingreso',
+            'estado': 'Estado', 'nombre_paciente': 'Nombre paciente',
+            'doctor': 'Doctor', 'tons_a_cargo': 'Tons a cargo',
+            'fecha_diseno': 'Fecha de diseño', 'fecha_fresado': 'Fecha de fresado',
+            'fecha_entrega': 'Fecha de entrega', 'sucursal': 'Sucursal',
+            'asunto_detalles': 'Asunto / Detalles', 'material': 'Material',
+            'diseno': 'Diseño', 'bloques_usados': 'Bloques usados'
+        }
+        df = df.rename(columns=renombre)
+        return df
+    except: return pd.DataFrame()
 
 # --- 4. SIDEBAR ---
 with st.sidebar:
     try: st.image("logo.png", use_container_width=True)
     except: st.warning("Logo no encontrado")
     st.title("Panel Lab Digital")
-    st.write("Policlínico Tabancura")
+    st.write("🏥 Policlínico Tabancura")
     st.divider()
+    if engine: st.success("🟢 Conectado")
+    else: st.error("🔴 Desconectado")
 
-# --- 5. INTERFAZ ---
-tabs = st.tabs(["➕ Ingreso", "📊 Visualizador", "✏️ Edición", "📈 Dashboard Pro", "🗓️ Entregas", "📥 Exportar"])
+# --- 5. TÍTULO PRINCIPAL ---
+st.title("Registro Digital de Laboratorio")
+st.markdown("---")
+
+# --- 6. INTERFAZ ---
+if engine is None:
+    st.warning("⚠️ No se detectó configuración de base de datos.")
+    st.stop()
+
+tabs = st.tabs(["➕ Ingreso", "📊 Visualizador", "✏️ Edición", "📈 Dashboard", "🗓️ Entregas", "📥 Exportar"])
 
 # --- PESTAÑA 1: INGRESO ---
 with tabs[0]:
@@ -83,40 +113,44 @@ with tabs[0]:
 
     with st.form("form_ingreso", clear_on_submit=True):
         c1, c2, c3 = st.columns(3)
-        in_id = c1.number_input("N° Identificador", min_value=1, value=siguiente_id)
+        in_id = c1.number_input("N° Identificador", min_value=1, value=siguiente_id, help="ID correlativo único del caso.")
         in_f_ing = c2.date_input("Fecha de ingreso", value=date.today())
-        in_est = c3.selectbox("Estado", options=[""] + OPCIONES_ESTADO)
+        in_est = c3.selectbox("Estado inicial", options=[""] + OPCIONES_ESTADO, help="Estado en el que ingresa al laboratorio.")
         
         c4, c5, c6 = st.columns(3)
-        in_pac = c4.text_input("Nombre paciente")
+        in_pac = c4.text_input("Nombre paciente", placeholder="Ej: Juan Pérez")
         in_doc = c5.selectbox("Doctor", options=[""] + OPCIONES_DOCTOR)
-        in_tons = c6.selectbox("Tons a cargo", options=[""] + OPCIONES_TONS)
+        in_tons = c6.selectbox("Tons a cargo", options=[""] + OPCIONES_TONS, help="Responsable técnico del trabajo.")
         
         c7, c8, c9 = st.columns(3)
         in_f_dis = c7.date_input("Fecha de diseño", value=None)
         in_f_fre = c8.date_input("Fecha de fresado", value=None)
-        in_f_ent = c9.date_input("Fecha de entrega", value=None)
+        in_f_ent = c9.date_input("Fecha de entrega", value=None, help="Fecha acordada para despacho.")
         
         c10, c11, c12 = st.columns(3)
         in_suc = c10.selectbox("Sucursal", options=[""] + OPCIONES_SUCURSAL)
         in_mat = c11.selectbox("Material", options=[""] + OPCIONES_MATERIAL)
-        # Cambio a selectbox para bloques usados
-        in_blo = c12.selectbox("Bloques usados", options=[""] + OPCIONES_BLOQUES)
+        in_blo = c12.selectbox("Bloques", options=[""] + OPCIONES_BLOQUES)
         
         in_dis = st.selectbox("Diseño", options=[""] + OPCIONES_DISENO)
-        in_det = st.text_area("Asunto / Detalles")
+        in_det = st.text_area("Detalles / Observaciones")
         
-        if st.form_submit_button("Guardar Registro"):
-            with engine.begin() as conn:
-                query = text("""INSERT INTO registros (identificador, fecha_ingreso, estado, nombre_paciente, doctor, tons_a_cargo, fecha_diseno, fecha_fresado, fecha_entrega, sucursal, material, diseno, asunto_detalles, bloques_usados) 
-                                VALUES (:id, :fi, :es, :pa, :do, :to, :fd, :ff, :fe, :su, :ma, :di, :de, :bl)""")
-                conn.execute(query, {"id":in_id, "fi":str(in_f_ing), "es":in_est, "pa":in_pac, "do":in_doc, "to":in_tons, "fd":str(in_f_dis), "ff":str(in_f_fre), "fe":str(in_f_ent), "su":in_suc, "ma":in_mat, "di":in_dis, "de":in_det, "bl":in_blo})
-            st.success("Guardado!"); st.rerun()
+        if st.form_submit_button("💾 Guardar Registro"):
+            if not in_pac or not in_est:
+                st.error("⚠️ El nombre del paciente y el estado son obligatorios.")
+            else:
+                with engine.begin() as conn:
+                    query = text("""INSERT INTO registros (identificador, fecha_ingreso, estado, nombre_paciente, doctor, tons_a_cargo, fecha_diseno, fecha_fresado, fecha_entrega, sucursal, material, diseno, asunto_detalles, bloques_usados) 
+                                    VALUES (:id, :fi, :es, :pa, :do, :to, :fd, :ff, :fe, :su, :ma, :di, :de, :bl)""")
+                    conn.execute(query, {"id":in_id, "fi":str(in_f_ing), "es":in_est, "pa":in_pac, "do":in_doc, "to":in_tons, "fd":str(in_f_dis), "ff":str(in_f_fre), "fe":str(in_f_ent), "su":in_suc, "ma":in_mat, "di":in_dis, "de":in_det, "bl":in_blo})
+                st.success(f"✅ ¡Registro #{in_id} ({in_pac}) guardado con éxito!")
+                st.toast("Guardado correctamente", icon="💾")
+                st.rerun()
 
 # --- PESTAÑA 2: VISUALIZADOR ---
 with tabs[1]:
     st.subheader("Buscador Multicolumna")
-    busq = st.text_input("🔍 Filtro inteligente:")
+    busq = st.text_input("🔍 Buscar:", placeholder="Escribe nombre, doctor, sucursal...")
     df_v = cargar_datos_formateados()
     if not df_v.empty:
         if busq:
@@ -126,7 +160,7 @@ with tabs[1]:
 
 # --- PESTAÑA 3: EDICIÓN COMPLETA ---
 with tabs[2]:
-    st.subheader("Edición de Registro")
+    st.subheader("Modificar Trabajo")
     df_e_raw = pd.read_sql("SELECT * FROM registros ORDER BY identificador DESC", engine)
     if not df_e_raw.empty:
         lista_edit = [f"{r['identificador']} - {r['nombre_paciente']}" for _, r in df_e_raw.iterrows()]
@@ -161,47 +195,46 @@ with tabs[2]:
                 ed_ma = c10.selectbox("Material", [""] + OPCIONES_MATERIAL, index=ed_ma_idx)
                 ed_di_idx = OPCIONES_DISENO.index(d['diseno']) + 1 if d['diseno'] in OPCIONES_DISENO else 0
                 ed_di = c11.selectbox("Diseño", [""] + OPCIONES_DISENO, index=ed_di_idx)
-                # Cambio a selectbox para bloques usados en edición
                 ed_blo_val = d['bloques_usados'] if d['bloques_usados'] in OPCIONES_BLOQUES else ""
-                ed_blo = c12.selectbox("Bloques Usados", [""] + OPCIONES_BLOQUES, index=(OPCIONES_BLOQUES.index(ed_blo_val)+1 if ed_blo_val else 0))
+                ed_blo = c12.selectbox("Bloques", [""] + OPCIONES_BLOQUES, index=(OPCIONES_BLOQUES.index(ed_blo_val)+1 if ed_blo_val else 0))
                 
                 ed_det = st.text_area("Asunto / Detalles", value=str(d['asunto_detalles'] or ""))
                 
-                if st.form_submit_button("Actualizar Registro"):
+                if st.form_submit_button("🔄 Actualizar Datos"):
                     with engine.begin() as conn:
                         conn.execute(text("""UPDATE registros SET fecha_ingreso=:fi, estado=:es, nombre_paciente=:pa, doctor=:doc, tons_a_cargo=:to, sucursal=:su, fecha_diseno=:fd, fecha_fresado=:ff, fecha_entrega=:fe, material=:ma, diseno=:di, asunto_detalles=:de, bloques_usados=:bl WHERE identificador=:id"""),
-                        {"fi":str(ed_fi), "es":ed_es, "pa":ed_pa, "doc":ed_do, "to":ed_to, "su":ed_su, "fd":str(ed_fd), "ff":str(ed_ff), "fe":str(ed_fe), "ma":ed_ma, "di":ed_di, "de":ed_de, "bl":ed_blo, "id":id_ed})
-                    st.success("¡Actualizado!"); st.rerun()
+                        {"fi":str(ed_fi), "es":ed_es, "pa":ed_pa, "doc":ed_do, "to":ed_to, "su":ed_su, "fd":str(ed_fd), "ff":str(ed_ff), "fe":str(ed_fe), "ma":ed_ma, "di":ed_di, "de":ed_det, "id":id_ed, "bl":ed_blo})
+                    st.success(f"✅ ¡Caso #{id_ed} actualizado con éxito!")
+                    st.toast("Cambios aplicados", icon="🔄")
+                    st.rerun()
 
             if st.button("🗑️ Eliminar Trabajo"):
                 with engine.begin() as conn: conn.execute(text("DELETE FROM registros WHERE identificador=:id"), {"id":id_ed})
-                st.warning("Eliminado"); st.rerun()
+                st.toast("Eliminado con éxito", icon="🗑️")
+                st.rerun()
 
 # --- PESTAÑA 4: DASHBOARD PRO ---
 with tabs[3]:
-    st.subheader("📈 Análisis de Datos del Laboratorio")
+    st.subheader("📈 Métricas del Laboratorio")
     df_db = cargar_datos_formateados()
-    
     if not df_db.empty:
         k1, k2, k3, k4 = st.columns(4)
-        k1.metric("Total Trabajos", len(df_db))
-        k2.metric("Tons con mayor registro", df_db['Tons a cargo'].mode()[0] if not df_db['Tons a cargo'].mode().empty else "N/A")
-        k3.metric("Material más utilizado", df_db['Material'].mode()[0] if not df_db['Material'].mode().empty else "N/A")
-        k4.metric("Día con mayor ingresos", df_db['Fecha de ingreso'].mode()[0] if not df_db['Fecha de ingreso'].mode().empty else "N/A")
-        
+        k1.metric("Total Casos", len(df_db))
+        k2.metric("Tons con mayor registros", df_db['Tons a cargo'].mode()[0] if not df_db['Tons a cargo'].mode().empty else "-")
+        k3.metric("Material Preferido", df_db['Material'].mode()[0] if not df_db['Material'].mode().empty else "-")
+        k4.metric("Día con mayor registros de trabajos", str(df_db['Fecha de ingreso'].mode()[0]))
         st.divider()
         g1, g2 = st.columns(2)
         fig_est = px.bar(df_db['Estado'].value_counts().reset_index(), x='Estado', y='count', color='Estado', title="Trabajos por Estado")
         g1.plotly_chart(fig_est, use_container_width=True)
-        fig_mat = px.pie(df_db, names='Material', title="Uso de Materiales", hole=0.3)
+        fig_mat = px.pie(df_db, names='Material', title="Uso de Materiales", hole=0.4)
         g2.plotly_chart(fig_mat, use_container_width=True)
-        
-        st.divider()
-        c_left, c_right = st.columns(2)
-        fig_tons = px.bar(df_db['Tons a cargo'].value_counts().reset_index(), x='Tons a cargo', y='count', title="Productividad por Tons", color_discrete_sequence=['#3498db'])
-        c_left.plotly_chart(fig_tons, use_container_width=True)
-        fig_line = px.line(df_db.groupby('Fecha de ingreso').size().reset_index(name='Cant'), x='Fecha de ingreso', y='Cant', title="Tendencia de Ingresos", markers=True)
-        c_right.plotly_chart(fig_line, use_container_width=True)
+        g3, g4 = st.columns(2)
+        fig_tons = px.bar(df_db['Tons a cargo'].value_counts().reset_index(), x='Tons a cargo', y='count', title="Carga por Técnico", color_discrete_sequence=['#007bff'])
+        g3.plotly_chart(fig_tons, use_container_width=True)
+        df_line = df_db.groupby('Fecha de ingreso').size().reset_index(name='Cant')
+        fig_line = px.line(df_line, x='Fecha de ingreso', y='Cant', title="Tendencia de Ingresos", markers=True)
+        g4.plotly_chart(fig_line, use_container_width=True)
 
 # --- PESTAÑA 5: ENTREGAS ---
 with tabs[4]:
@@ -214,22 +247,17 @@ with tabs[4]:
 
 # --- PESTAÑA 6: EXPORTACIÓN ---
 with tabs[5]:
-    st.subheader("📥 Centro de Exportación")
+    st.subheader("📥 Exportar Datos")
     df_ex = cargar_datos_formateados()
-    
-    with st.expander("Filtros para el reporte", expanded=True):
+    with st.expander("Filtrar Reporte", expanded=True):
         f_col1, f_col2 = st.columns(2)
-        ex_suc = f_col1.multiselect("Sucursal", OPCIONES_SUCURSAL, default=OPCIONES_SUCURSAL)
-        ex_est = f_col2.multiselect("Estado", OPCIONES_ESTADO, default=OPCIONES_ESTADO)
+        ex_suc = f_col1.multiselect("Sucursal:", OPCIONES_SUCURSAL, default=OPCIONES_SUCURSAL)
+        ex_est = f_col2.multiselect("Estado:", OPCIONES_ESTADO, default=OPCIONES_ESTADO)
         df_final = df_ex[(df_ex['Sucursal'].isin(ex_suc)) & (df_ex['Estado'].isin(ex_est))]
-    
-    st.write(f"Datos filtrados ({len(df_final)} registros):")
-    st.dataframe(df_final, use_container_width=True)
-    
+    st.write(f"📊 Registros listos: {len(df_final)}")
     c_d1, c_d2 = st.columns(2)
-    c_d1.download_button("Descargar CSV", df_final.to_csv(index=False).encode('utf-8-sig'), "reporte_lab.csv", "text/csv")
-    
+    c_d1.download_button("Descargar CSV", df_final.to_csv(index=False).encode('utf-8-sig'), "lab_digital.csv", "text/csv")
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as wr:
-        df_final.to_excel(wr, index=False, sheet_name='Registros')
-    c_d2.download_button("Descargar Excel", output.getvalue(), "reporte_lab.xlsx")
+        df_final.to_excel(wr, index=False, sheet_name='Reporte')
+    c_d2.download_button("Descargar Excel", output.getvalue(), "lab_digital.xlsx")
