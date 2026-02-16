@@ -9,12 +9,26 @@ import os
 # --- 1. CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(page_title="Laboratorio Digital Tabancura", layout="wide", page_icon="🦷")
 
-# Estilo CSS para mejorar la UI (Tarjetas para métricas y formularios limpios)
+# CSS Normalizado: Eliminamos fondos fijos para que Streamlit use su motor de temas
 st.markdown("""
     <style>
-    .main { background-color: #f8f9fa; }
-    .stMetric { background-color: #ffffff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    [data-testid="stForm"] { border: 1px solid #e6e9ef; padding: 25px; border-radius: 12px; background-color: #ffffff; }
+    /* Estilo para métricas que se adapta al fondo */
+    [data-testid="stMetric"] {
+        border: 1px solid rgba(128, 128, 128, 0.2);
+        padding: 15px;
+        border-radius: 10px;
+    }
+    /* Estilo para formularios sin forzar color de fondo */
+    [data-testid="stForm"] {
+        border: 1px solid rgba(128, 128, 128, 0.3);
+        padding: 25px;
+        border-radius: 12px;
+    }
+    /* Mejora legibilidad de captions */
+    .stCaption {
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -27,17 +41,13 @@ OPCIONES_MATERIAL = ["Disilicato A3", "Hibrido A3", "Híbrido A2", "Disilicato A
 OPCIONES_DISENO = ["Modalidad Chairside", "Diseñado por David", "Diseñado por Pauline", "Diseñado por Antonio", "Diseñado por Grace", "Diseñado por Sebastian"]
 OPCIONES_BLOQUES = ["1 bloque", "2 bloques", "3 bloques", "4 bloques", "5 o más bloques"]
 
-# --- 3. CONEXIÓN A BASE DE DATOS (RESTAURADA) ---
+# --- 3. CONEXIÓN A BASE DE DATOS ---
 def get_engine():
-    # Intenta variables de entorno (Local)
     host = os.getenv("POSTGRES_HOST")
     if host:
-        database = os.getenv("POSTGRES_DATABASE")
-        user = os.getenv("POSTGRES_USER")
-        password = os.getenv("POSTGRES_PASSWORD")
+        database, user, password = os.getenv("POSTGRES_DATABASE"), os.getenv("POSTGRES_USER"), os.getenv("POSTGRES_PASSWORD")
         port = os.getenv("POSTGRES_PORT", "5432")
     else:
-        # Intenta Secrets (Nube)
         try:
             if "postgres" in st.secrets:
                 pg = st.secrets["postgres"]
@@ -56,9 +66,18 @@ engine = get_engine()
 
 # --- 4. UTILIDADES ---
 def aplicar_colores(val):
-    colores = {'Solicitado': 'background-color: #ffcccc; color: #990000;', 'En progreso': 'background-color: #fff4cc; color: #996600;', 'Aceptado': 'background-color: #e2f0d9; color: #385723;', 'Entregado': 'background-color: #d9e2f3; color: #1f4e78;', 'Fresado': 'background-color: #e1d5e7; color: #53315a;', 'Diseñado': 'background-color: #dae8fc; color: #004085;', 'Listo': 'background-color: #d4edda; color: #155724;'}
+    # Colores con opacidad (RGBA) para que funcionen sobre fondos claros y oscuros
+    colores = {
+        'Solicitado': 'background-color: rgba(255, 0, 0, 0.2); color: #ff4b4b;',
+        'En progreso': 'background-color: rgba(255, 165, 0, 0.2); color: #ffa500;',
+        'Aceptado': 'background-color: rgba(0, 128, 0, 0.2); color: #00ff00;',
+        'Entregado': 'background-color: rgba(0, 0, 255, 0.2); color: #4b8bff;',
+        'Fresado': 'background-color: rgba(128, 0, 128, 0.2); color: #d633ff;',
+        'Diseñado': 'background-color: rgba(0, 255, 255, 0.1); color: #33e0ff;',
+        'Listo': 'background-color: rgba(144, 238, 144, 0.2); color: #28a745;'
+    }
     style = colores.get(val, '')
-    return f'{style} font-weight: bold; border-radius: 4px;' if style else ''
+    return f'{style} font-weight: bold; border: 1px solid rgba(255,255,255,0.1);' if style else ''
 
 def cargar_datos():
     if engine is None: return pd.DataFrame()
@@ -68,12 +87,12 @@ def cargar_datos():
         return df.rename(columns=renombre)
     except: return pd.DataFrame()
 
-# --- 5. INTERFAZ ---
+# --- 5. SIDEBAR ---
 with st.sidebar:
     try: st.image("logo.png", use_container_width=True)
     except: st.title("🦷 Lab Tabancura")
     st.markdown("### 🛠️ Navegación")
-    st.info("Seleccione una pestaña en el panel central para comenzar.")
+    st.caption("Utilice las pestañas superiores para gestionar el flujo de trabajo.")
     st.divider()
     st.write(f"📅 **Hoy:** {date.today().strftime('%d/%m/%Y')}")
 
@@ -81,7 +100,7 @@ st.title("🦷 Registro Digital de Laboratorio")
 st.markdown("---")
 
 if engine is None:
-    st.error("🔴 **Error de Conexión:** No se pudo conectar con la base de datos. Verifique sus credenciales.")
+    st.error("🔴 **Error de Conexión:** No se pudo conectar con la base de datos.")
     st.stop()
 
 tabs = st.tabs(["➕ Ingreso", "🔍 Visualizador", "✏️ Edición", "📈 Dashboard", "🗓️ Entregas", "📥 Exportar"])
@@ -89,7 +108,7 @@ tabs = st.tabs(["➕ Ingreso", "🔍 Visualizador", "✏️ Edición", "📈 Das
 # --- TAB 1: INGRESO ---
 with tabs[0]:
     st.header("➕ Registrar Nuevo Trabajo")
-    st.caption("Complete la información del paciente y los requerimientos técnicos para iniciar un nuevo caso.")
+    st.caption("Complete la información para dar de alta un nuevo caso clínico.")
     
     try:
         with engine.connect() as conn:
@@ -130,8 +149,8 @@ with tabs[0]:
 # --- TAB 2: VISUALIZADOR ---
 with tabs[1]:
     st.header("🔍 Explorador de Casos")
-    st.caption("Consulte el estado de todos los trabajos. Puede usar el buscador para filtrar por nombre, doctor o ID.")
-    busq = st.text_input("🔍 Filtrar tabla:", placeholder="Escriba aquí...")
+    st.caption("Consulte y filtre el listado histórico de trabajos registrados.")
+    busq = st.text_input("🔍 Filtrar por nombre, ID o doctor:", placeholder="Escriba aquí...")
     df_v = cargar_datos()
     if not df_v.empty:
         if busq:
@@ -142,10 +161,10 @@ with tabs[1]:
 # --- TAB 3: EDICIÓN ---
 with tabs[2]:
     st.header("✏️ Modificar Trabajo")
-    st.caption("Seleccione un caso existente para actualizar su información o cambiar su estado de producción.")
+    st.caption("Actualice estados, fechas o detalles de un registro existente.")
     df_e_raw = pd.read_sql("SELECT * FROM registros ORDER BY identificador DESC", engine)
     if not df_e_raw.empty:
-        sel_e = st.selectbox("Seleccione el caso para editar:", ["..."] + [f"{r['identificador']} - {r['nombre_paciente']}" for _, r in df_e_raw.iterrows()])
+        sel_e = st.selectbox("Seleccione caso para editar:", ["..."] + [f"{r['identificador']} - {r['nombre_paciente']}" for _, r in df_e_raw.iterrows()])
         if sel_e != "...":
             id_ed = int(sel_e.split(" - ")[0])
             d = df_e_raw[df_e_raw['identificador'] == id_ed].iloc[0]
@@ -154,31 +173,31 @@ with tabs[2]:
                 ed_pa = c1.text_input("Nombre Paciente", value=d['nombre_paciente'])
                 ed_es = c2.selectbox("Estado", OPCIONES_ESTADO, index=OPCIONES_ESTADO.index(d['estado']) if d['estado'] in OPCIONES_ESTADO else 0)
                 ed_det = st.text_area("Detalles", value=str(d['asunto_detalles'] or ""))
-                if st.form_submit_button("🔄 ACTUALIZAR", use_container_width=True):
+                if st.form_submit_button("🔄 ACTUALIZAR REGISTRO", use_container_width=True):
                     with engine.begin() as conn:
                         conn.execute(text("UPDATE registros SET estado=:es, nombre_paciente=:pa, asunto_detalles=:de WHERE identificador=:id"), {"es":ed_es, "pa":ed_pa, "de":ed_det, "id":id_ed})
-                    st.success("Actualizado.")
+                    st.success("Registro actualizado.")
                     st.rerun()
 
 # --- TAB 4: DASHBOARD ---
 with tabs[3]:
     st.header("📈 Dashboard de Gestión")
-    st.caption("Resumen visual del rendimiento del laboratorio y distribución de la carga de trabajo.")
+    st.caption("Estadísticas clave sobre la producción y uso de materiales.")
     df_db = cargar_datos()
     if not df_db.empty:
         k1, k2, k3 = st.columns(3)
         k1.metric("Total Casos", len(df_db))
-        k2.metric("Material Líder", df_db['Material'].mode()[0] if not df_db['Material'].empty else "-")
-        k3.metric("Estado Principal", df_db['Estado'].mode()[0] if not df_db['Estado'].empty else "-")
+        k2.metric("Material más usado", df_db['Material'].mode()[0] if not df_db['Material'].empty else "-")
+        k3.metric("Sucursal Activa", df_db['Sucursal'].mode()[0] if not df_db['Sucursal'].empty else "-")
         st.divider()
         g1, g2 = st.columns(2)
-        g1.plotly_chart(px.bar(df_db['Estado'].value_counts().reset_index(), x='Estado', y='count', color='Estado', title="Casos por Estado"), use_container_width=True)
+        g1.plotly_chart(px.bar(df_db['Estado'].value_counts().reset_index(), x='Estado', y='count', title="Distribución por Estado", template="plotly_dark" if st.get_option("theme.base") == "dark" else "plotly"), use_container_width=True)
         g2.plotly_chart(px.pie(df_db, names='Material', title="Uso de Materiales", hole=0.3), use_container_width=True)
 
 # --- TAB 5: ENTREGAS ---
 with tabs[4]:
     st.header("🗓️ Próximas Entregas")
-    st.caption("Lista de trabajos ordenados por fecha de entrega. Enfóquese en los casos pendientes por despachar.")
+    st.caption("Listado de trabajos pendientes ordenados por prioridad de entrega.")
     df_p = cargar_datos()
     if not df_p.empty:
         df_p['f_dt'] = pd.to_datetime(df_p['F. Entrega'], errors='coerce')
@@ -188,14 +207,15 @@ with tabs[4]:
 # --- TAB 6: EXPORTAR ---
 with tabs[5]:
     st.header("📥 Exportar Datos")
-    st.caption("Genere reportes descargables en formato Excel o CSV para su uso en auditorías o administración.")
+    st.caption("Descargue reportes en formato Excel o CSV aplicando filtros personalizados.")
     df_ex = cargar_datos()
     with st.container(border=True):
         f1, f2 = st.columns(2)
         ex_suc = f1.multiselect("Sucursal:", OPCIONES_SUCURSAL, default=OPCIONES_SUCURSAL)
         ex_est = f2.multiselect("Estado:", OPCIONES_ESTADO, default=OPCIONES_ESTADO)
         df_res = df_ex[(df_ex['Sucursal'].isin(ex_suc)) & (df_ex['Estado'].isin(ex_est))]
-    st.write(f"📊 Registros filtrados: {len(df_res)}")
+    
+    st.write(f"📊 Registros listos: {len(df_res)}")
     c_d1, c_d2 = st.columns(2)
     c_d1.download_button("Descargar CSV", df_res.to_csv(index=False).encode('utf-8-sig'), "lab_tabancura.csv", use_container_width=True)
     out = io.BytesIO()
