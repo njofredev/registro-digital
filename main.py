@@ -7,7 +7,7 @@ import io
 import os
 
 # --- CONFIGURACIÓN DE PÁGINA ---
-st.set_page_config(page_title="Lab Digital Pro - Tabancura", layout="wide", page_icon="🦷")
+st.set_page_config(page_title="Laboratorio digital - Tabancura", layout="wide", page_icon="🦷")
 
 # --- 1. DEFINICIÓN DE OPCIONES ---
 OPCIONES_ESTADO = ["Solicitado", "En progreso", "Aceptado", "Entregado", "Fresado", "Diseñado", "Listo"]
