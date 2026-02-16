@@ -242,9 +242,9 @@ with tabs[3]:
     if not df_db.empty:
         k1, k2, k3, k4 = st.columns(4)
         k1.metric("Total Casos", len(df_db), help="Cantidad total de registros en la base de datos.")
-        k2.metric("Tons más cargado", df_db['Tons a cargo'].mode()[0] if not df_db['Tons a cargo'].mode().empty else "-", help="Responsable con mayor número de trabajos asignados.")
+        k2.metric("Tons con mayor registro", df_db['Tons a cargo'].mode()[0] if not df_db['Tons a cargo'].mode().empty else "-", help="Responsable con mayor número de trabajos asignados.")
         k3.metric("Material Preferido", df_db['Material'].mode()[0] if not df_db['Material'].mode().empty else "-", help="Material con mayor frecuencia de uso.")
-        k4.metric("Día Pico Ingresos", str(df_db['Fecha de ingreso'].mode()[0]), help="Fecha en la que ingresaron más trabajos históricamente.")
+        k4.metric("Mayor dia de ingresos", str(df_db['Fecha de ingreso'].mode()[0]), help="Fecha en la que ingresaron más trabajos históricamente.")
         
         st.divider()
         g1, g2 = st.columns(2)
