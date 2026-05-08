@@ -2,6 +2,8 @@ import { getRegistros } from '../actions';
 import DashboardClient from './DashboardClient';
 import { BarChart3 } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "Métricas",
 };

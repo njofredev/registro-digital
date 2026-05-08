@@ -2,6 +2,8 @@ import { getRegistros, getDynamicOptions } from '../actions';
 import EdicionClient from './EdicionClient';
 import { Edit } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "Edición",
 };

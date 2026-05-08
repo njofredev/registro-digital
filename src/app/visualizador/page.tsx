@@ -2,6 +2,8 @@ import { getRegistros } from '../actions';
 import VisualizadorClient from './VisualizadorClient';
 import { Search } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "Buscador",
 };
