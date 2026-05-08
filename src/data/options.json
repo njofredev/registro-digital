@@ -1,0 +1,66 @@
+{
+  "estado": [
+    "Solicitado",
+    "En progreso",
+    "Aceptado",
+    "Entregado",
+    "Fresado",
+    "Diseñado",
+    "Listo"
+  ],
+  "doctor": [
+    "Grace Martinson",
+    "Pauline Heinriksen",
+    "David Sandoval",
+    "Antonio Alvear",
+    "Sebastián Ortíz",
+    "Antonia Pardo",
+    "Antigravity"
+  ],
+  "tons_a_cargo": [
+    "Sasha U.",
+    "Natalia A.",
+    "Martina T.",
+    "Valentina S.",
+    "Javiera P.",
+    "Álvaro M.",
+    "Isidora Q.",
+    "Carolina H.",
+    "Carolina S.",
+    "SIN TONS",
+    "Antonio Alvear",
+    "TONS Tribunales",
+    "Dr(a)",
+    "Fernanda Cortés",
+    "Nicol Jara"
+  ],
+  "sucursal": [
+    "Sucursal Los Tribunales",
+    "Sucursal Vitacura"
+  ],
+  "material": [
+    "Disilicato A3",
+    "Hibrido A3",
+    "Híbrido A2",
+    "Disilicato A2",
+    "Disilicato A1",
+    "Disilicato",
+    "Híbrido A1",
+    "PMMA"
+  ],
+  "diseno": [
+    "Modalidad Chairside",
+    "Diseñado por David",
+    "Diseñado por Pauline",
+    "Diseñado por Antonio",
+    "Diseñado por Grace",
+    "Diseñado por Sebastian"
+  ],
+  "bloques_usados": [
+    "1 bloque",
+    "2 bloques",
+    "3 bloques",
+    "4 bloques",
+    "5 o más bloques"
+  ]
+}

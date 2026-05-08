@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model registros {
+  identificador   Int     @id
+  asunto_detalles String?
+  bloques_usados  String?
+  diseno          String?
+  doctor          String?
+  estado          String?
+  fecha_diseno    String?
+  fecha_fresado   String?
+  fecha_ingreso   String?
+  fecha_entrega   String?
+  material        String?
+  nombre_paciente String?
+  sucursal        String?
+  tons_a_cargo    String?
+}
