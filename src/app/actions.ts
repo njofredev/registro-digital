@@ -6,42 +6,49 @@ import fs from 'fs/promises';
 import path from 'path';
 
 export async function createRegistro(formData: FormData) {
-  const identificador = parseInt(formData.get('identificador') as string, 10);
-  const fecha_ingreso = formData.get('fecha_ingreso') as string;
-  const estado = formData.get('estado') as string;
-  const nombre_paciente = formData.get('nombre_paciente') as string;
-  const doctor = formData.get('doctor') as string;
-  const tons_a_cargo = formData.get('tons_a_cargo') as string;
-  const fecha_diseno = formData.get('fecha_diseno') as string;
-  const fecha_fresado = formData.get('fecha_fresado') as string;
-  const fecha_entrega = formData.get('fecha_entrega') as string;
-  const sucursal = formData.get('sucursal') as string;
-  const material = formData.get('material') as string;
-  const diseno = formData.get('diseno') as string;
-  const bloques_usados = formData.get('bloques_usados') as string;
-  const asunto_detalles = formData.get('asunto_detalles') as string;
+  try {
+    // Calculate the ID on the server right before creating to prevent collisions from stale client-side values
+    const identificador = await getNextId();
+    
+    const fecha_ingreso = formData.get('fecha_ingreso') as string;
+    const estado = formData.get('estado') as string;
+    const nombre_paciente = formData.get('nombre_paciente') as string;
+    const doctor = formData.get('doctor') as string;
+    const tons_a_cargo = formData.get('tons_a_cargo') as string;
+    const fecha_diseno = formData.get('fecha_diseno') as string;
+    const fecha_fresado = formData.get('fecha_fresado') as string;
+    const fecha_entrega = formData.get('fecha_entrega') as string;
+    const sucursal = formData.get('sucursal') as string;
+    const material = formData.get('material') as string;
+    const diseno = formData.get('diseno') as string;
+    const bloques_usados = formData.get('bloques_usados') as string;
+    const asunto_detalles = formData.get('asunto_detalles') as string;
 
-  await db.registros.create({
-    data: {
-      identificador,
-      fecha_ingreso,
-      estado,
-      nombre_paciente,
-      doctor,
-      tons_a_cargo,
-      fecha_diseno,
-      fecha_fresado,
-      fecha_entrega,
-      sucursal,
-      material,
-      diseno,
-      bloques_usados,
-      asunto_detalles,
-    },
-  });
+    await db.registros.create({
+      data: {
+        identificador,
+        fecha_ingreso,
+        estado,
+        nombre_paciente,
+        doctor,
+        tons_a_cargo,
+        fecha_diseno,
+        fecha_fresado,
+        fecha_entrega,
+        sucursal,
+        material,
+        diseno,
+        bloques_usados,
+        asunto_detalles,
+      },
+    });
 
-  revalidatePath('/');
-  return { success: true };
+    revalidatePath('/');
+    return { success: true, identificador };
+  } catch (error: any) {
+    console.error("Error in createRegistro Server Action:", error);
+    return { success: false, error: error.message || "Error al crear el registro" };
+  }
 }
 
 export async function updateRegistro(identificador: number, formData: FormData) {

@@ -2,6 +2,8 @@ import { getNextId, getDynamicOptions } from '../actions';
 import IngresoForm from './IngresoForm';
 import { FilePlus } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "Nuevo Ingreso",
 };

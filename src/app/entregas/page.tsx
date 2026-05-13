@@ -2,6 +2,8 @@ import { getRegistros } from '../actions';
 import EntregasClient from './EntregasClient';
 import { CalendarClock } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "Entregas",
 };

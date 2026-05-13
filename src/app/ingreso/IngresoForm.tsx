@@ -13,13 +13,14 @@ import {
 } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { createRegistro } from '../actions';
-import { Save, User, Activity, CalendarDays, Box, ClipboardList, Check } from 'lucide-react';
+import { Save, User, Activity, CalendarDays, Box, ClipboardList, Check, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 export default function IngresoForm({ nextId, options }: { nextId: number; options: any }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const today = new Date().toISOString().split('T')[0];
 
   const optEstado = options?.estado || [];
@@ -33,18 +34,34 @@ export default function IngresoForm({ nextId, options }: { nextId: number; optio
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-    await createRegistro(formData);
-    setIsSubmitting(false);
-    form.reset();
-    router.refresh(); 
-    
-    // Scroll smoothly to top to show success banner
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 5000);
+    setErrorMsg(null);
+    setShowSuccess(false);
+
+    try {
+      const form = e.currentTarget;
+      const formData = new FormData(form);
+      const result = await createRegistro(formData);
+
+      if (result.success) {
+        form.reset();
+        router.refresh(); 
+        
+        // Scroll smoothly to top to show success banner
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 5000);
+      } else {
+        setErrorMsg(result.error || 'Ocurrió un error inesperado al guardar.');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } catch (err: any) {
+      console.error("Exception during createRegistro:", err);
+      setErrorMsg('No se pudo conectar con el servidor para guardar el caso.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -59,6 +76,19 @@ export default function IngresoForm({ nextId, options }: { nextId: number; optio
           <div>
             <h4 className="font-bold">¡Registro Exitoso!</h4>
             <p className="text-sm opacity-90">El nuevo caso clínico ha sido ingresado al sistema correctamente.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Banner de Error */}
+      {errorMsg && (
+        <div className="bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-500 shadow-sm">
+          <div className="bg-destructive/20 p-2 rounded-full">
+            <AlertCircle className="h-5 w-5" />
+          </div>
+          <div>
+            <h4 className="font-bold">Error al Registrar</h4>
+            <p className="text-sm opacity-90">{errorMsg}</p>
           </div>
         </div>
       )}

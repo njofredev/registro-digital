@@ -2,6 +2,8 @@ import { getRegistros, getDynamicOptions } from '../actions';
 import ExportarClient from './ExportarClient';
 import { Download } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "Exportar",
 };
