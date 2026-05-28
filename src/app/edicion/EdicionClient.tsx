@@ -16,7 +16,19 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import { updateRegistro, deleteRegistro, addDynamicOption, removeDynamicOption, editDynamicOption } from '../actions';
 import { Edit3, Trash2, ShieldAlert, Plus, FolderSync, PlusCircle, Trash, Pencil, Check, X } from 'lucide-react';
 
-type Registro = any;
+const TOOTH_SVG_PATHS: Record<string, string> = {
+  molar: "M28 22 C34 18, 44 24, 50 24 C56 24, 66 18, 72 22 C82 28, 80 48, 76 58 C72 68, 66 84, 58 84 C54 84, 52 74, 50 74 C48 74, 46 84, 42 84 C34 84, 28 68, 24 58 C20 48, 18 28, 28 22 Z",
+  premolar: "M32 24 C38 20, 44 26, 50 26 C56 26, 62 20, 68 24 C76 28, 75 48, 72 58 C69 68, 62 82, 56 82 C53 82, 52 74, 50 74 C48 74, 47 82, 44 82 C38 82, 31 68, 28 58 C25 48, 24 28, 32 24 Z",
+  canine: "M34 26 C42 16, 48 14, 50 14 C52 14, 58 16, 66 26 C74 36, 73 52, 69 62 C65 72, 57 84, 50 84 C43 84, 35 72, 31 62 C27 52, 26 36, 34 26 Z",
+  incisor: "M32 24 C40 22, 60 22, 68 24 C74 26, 73 50, 69 60 C65 70, 57 86, 50 86 C43 86, 35 70, 31 60 C27 50, 26 26, 32 24 Z"
+};
+
+function getToothSvgPath(num: number) {
+  if ([1, 2, 3, 14, 15, 16, 17, 18, 19, 30, 31, 32].includes(num)) return TOOTH_SVG_PATHS.molar;
+  if ([4, 5, 12, 13, 20, 21, 28, 29].includes(num)) return TOOTH_SVG_PATHS.premolar;
+  if ([6, 11, 22, 27].includes(num)) return TOOTH_SVG_PATHS.canine;
+  return TOOTH_SVG_PATHS.incisor;
+}
 
 export default function EdicionClient({ data, options }: { data: Registro[]; options: any }) {
   const router = useRouter();
@@ -35,6 +47,14 @@ export default function EdicionClient({ data, options }: { data: Registro[]; opt
   const [editingOption, setEditingOption] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState('');
 
+  const [selectedTeeth, setSelectedTeeth] = useState<number[]>([]);
+
+  const toggleTooth = (tooth: number) => {
+    setSelectedTeeth(prev => 
+      prev.includes(tooth) ? prev.filter(t => t !== tooth) : [...prev, tooth].sort((a, b) => a - b)
+    );
+  };
+
   const selectedRecord = data.find(r => r.identificador === selectedId);
 
   // Sync state with props when server re-renders
@@ -44,6 +64,13 @@ export default function EdicionClient({ data, options }: { data: Registro[]; opt
 
   useEffect(() => {
     setShowDeleteConfirm(false);
+    if (selectedRecord) {
+      const piezasStr = selectedRecord.piezas || '';
+      const parsed = piezasStr ? piezasStr.split(',').map(Number).filter(n => !isNaN(n)) : [];
+      setSelectedTeeth(parsed);
+    } else {
+      setSelectedTeeth([]);
+    }
   }, [selectedId, selectedRecord]);
 
   const optEstado = localOptions?.estado || [];
@@ -192,7 +219,7 @@ export default function EdicionClient({ data, options }: { data: Registro[]; opt
 
       {/* 2. Formulario de Edición */}
       {selectedRecord && (
-        <form onSubmit={handleUpdate} className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-2xl p-6 md:p-10 shadow-lg space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+        <form key={selectedRecord.identificador} onSubmit={handleUpdate} className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-2xl p-6 md:p-10 shadow-lg space-y-8 animate-in slide-in-from-bottom-4 duration-500">
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="space-y-3">
@@ -328,6 +355,81 @@ export default function EdicionClient({ data, options }: { data: Registro[]; opt
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+
+          {/* Odontograma (Piezas Dentales Involucradas) */}
+          <div className="space-y-4 border-t border-border/40 pt-8 pb-4">
+            <Label className="text-muted-foreground font-semibold text-xs uppercase tracking-wider flex items-center gap-2">
+              <FolderSync className="h-4 w-4 text-primary" />
+              Odontograma (Piezas Dentales Involucradas)
+            </Label>
+            <input type="hidden" name="piezas" value={selectedTeeth.join(',')} />
+            
+            <div className="space-y-6 bg-background/30 p-6 rounded-2xl border border-border/50">
+              {/* Arcada Superior */}
+              <div className="space-y-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block text-center">
+                  Maxilar Superior (Arcada Superior)
+                </span>
+                <div className="flex flex-wrap justify-center gap-2 md:gap-3 py-2">
+                  {Array.from({ length: 16 }, (_, i) => i + 1).map((num) => {
+                    const isSelected = selectedTeeth.includes(num);
+                    return (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => toggleTooth(num)}
+                        className={`group relative w-12 h-14 md:w-14 md:h-16 rounded-xl flex flex-col items-center justify-between p-1.5 border transition-all duration-200 ${
+                          isSelected
+                            ? 'bg-primary/20 border-primary text-primary shadow-md scale-105'
+                            : 'bg-card border-border/60 text-muted-foreground hover:text-foreground hover:border-primary/50'
+                        }`}
+                      >
+                        <svg viewBox="0 0 100 100" className={`w-8 h-8 md:w-10 md:h-10 transition-colors ${isSelected ? 'text-primary' : 'text-muted-foreground/20 group-hover:text-muted-foreground/55'}`}>
+                          <path d={getToothSvgPath(num)} fill="currentColor" stroke={isSelected ? "currentColor" : "none"} strokeWidth="2" />
+                        </svg>
+                        <span className="text-[10px] font-extrabold">{num}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Arcada Inferior */}
+              <div className="space-y-2 border-t border-border/30 pt-4">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block text-center">
+                  Mandíbula Inferior (Arcada Inferior)
+                </span>
+                <div className="flex flex-wrap justify-center gap-2 md:gap-3 py-2">
+                  {Array.from({ length: 16 }, (_, i) => i + 17).map((num) => {
+                    const isSelected = selectedTeeth.includes(num);
+                    return (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => toggleTooth(num)}
+                        className={`group relative w-12 h-14 md:w-14 md:h-16 rounded-xl flex flex-col items-center justify-between p-1.5 border transition-all duration-200 ${
+                          isSelected
+                            ? 'bg-primary/20 border-primary text-primary shadow-md scale-105'
+                            : 'bg-card border-border/60 text-muted-foreground hover:text-foreground hover:border-primary/50'
+                        }`}
+                      >
+                        <svg viewBox="0 0 100 100" className={`w-8 h-8 md:w-10 md:h-10 transition-colors ${isSelected ? 'text-primary' : 'text-muted-foreground/20 group-hover:text-muted-foreground/55'}`}>
+                          <path d={getToothSvgPath(num)} fill="currentColor" stroke={isSelected ? "currentColor" : "none"} strokeWidth="2" />
+                        </svg>
+                        <span className="text-[10px] font-extrabold">{num}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              {selectedTeeth.length > 0 && (
+                <div className="text-center text-xs text-muted-foreground border-t border-border/30 pt-4">
+                  Piezas seleccionadas: <span className="font-bold text-primary">{selectedTeeth.join(', ')}</span>
+                </div>
+              )}
             </div>
           </div>
 

@@ -22,4 +22,5 @@ model registros {
   nombre_paciente String?
   sucursal        String?
   tons_a_cargo    String?
+  piezas          String?
 }

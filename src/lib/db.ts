@@ -1,4 +1,5 @@
 import { PrismaClient } from '@/generated/prisma/client';
+// Forced rebuild comment to clear Turbopack imports cache for updated Prisma schema
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 

@@ -23,6 +23,7 @@ export async function createRegistro(formData: FormData) {
     const diseno = formData.get('diseno') as string;
     const bloques_usados = formData.get('bloques_usados') as string;
     const asunto_detalles = formData.get('asunto_detalles') as string;
+    const piezas = formData.get('piezas') as string;
 
     await db.registros.create({
       data: {
@@ -40,6 +41,7 @@ export async function createRegistro(formData: FormData) {
         diseno,
         bloques_usados,
         asunto_detalles,
+        piezas,
       },
     });
 
@@ -53,8 +55,10 @@ export async function createRegistro(formData: FormData) {
 
 export async function updateRegistro(identificador: number, formData: FormData) {
   const data = Object.fromEntries(formData.entries()) as Record<string, string>;
-  // Remove empty strings and nulls
-  const cleanData = Object.fromEntries(Object.entries(data).filter(([_, v]) => v != null && v !== ''));
+  // Remove empty strings and nulls, but preserve pieces/comments if they are explicitly sent as empty
+  const cleanData = Object.fromEntries(
+    Object.entries(data).filter(([k, v]) => v != null && (v !== '' || k === 'piezas' || k === 'asunto_detalles'))
+  );
 
   await db.registros.update({
     where: { identificador },
