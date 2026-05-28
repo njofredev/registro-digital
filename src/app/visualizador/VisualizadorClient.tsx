@@ -21,6 +21,8 @@ function getToothSvgPath(num: number) {
   return TOOTH_SVG_PATHS.incisor;
 }
 
+type Registro = any;
+
 export default function VisualizadorClient({ data }: { data: Registro[] }) {
   const [search, setSearch] = useState('');
   const [expandedId, setExpandedId] = useState<number | null>(null);

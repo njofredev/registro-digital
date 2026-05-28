@@ -30,6 +30,8 @@ function getToothSvgPath(num: number) {
   return TOOTH_SVG_PATHS.incisor;
 }
 
+type Registro = any;
+
 export default function EdicionClient({ data, options }: { data: Registro[]; options: any }) {
   const router = useRouter();
   const [selectedId, setSelectedId] = useState<number | ''>('');
@@ -66,7 +68,7 @@ export default function EdicionClient({ data, options }: { data: Registro[]; opt
     setShowDeleteConfirm(false);
     if (selectedRecord) {
       const piezasStr = selectedRecord.piezas || '';
-      const parsed = piezasStr ? piezasStr.split(',').map(Number).filter(n => !isNaN(n)) : [];
+      const parsed = piezasStr ? piezasStr.split(',').map(Number).filter((n: number) => !isNaN(n)) : [];
       setSelectedTeeth(parsed);
     } else {
       setSelectedTeeth([]);
