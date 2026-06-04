@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { PlusCircle, Search, Edit3, BarChart2, Calendar, Download, Sun, Moon, User, Settings2 } from 'lucide-react';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { PlusCircle, Search, Edit3, BarChart2, Calendar, Download, Sun, Moon, User, Settings2, Scan } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
@@ -18,9 +18,19 @@ const navItems = [
   { name: 'Exportar Reportes', href: '/exportar', icon: Download },
 ];
 
+
+
 export function Sidebar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { theme, setTheme } = useTheme();
+
+  const isRadiologia = pathname.startsWith('/radiologia');
+  const activeItems = isRadiologia ? [
+    { name: 'Dashboard', href: '/radiologia', icon: BarChart2 },
+    { name: 'Ingreso', href: '/radiologia/ingreso', icon: PlusCircle },
+    { name: 'Reportería', href: '/radiologia/reporteria', icon: Download },
+  ] : navItems;
 
   // Dynamic greeting, time and date states
   const [time, setTime] = React.useState('');
@@ -72,30 +82,18 @@ export function Sidebar() {
           <Image src="/logo_vec.svg" alt="Logo" width={82} height={82} quality={100} className="object-contain" />
         </div>
         <h2 className="text-xl font-bold tracking-tight text-foreground">Policlínico Tabancura</h2>
-        <p className="text-[10px] font-bold text-muted-foreground/60 mt-1 tracking-wider uppercase">Registro digital de laboratorio</p>
-      </div>
-
-      {/* Search Input Trigger */}
-      <div className="px-4 mt-2 mb-4">
-        <button
-          onClick={triggerSearch}
-          className="w-full flex items-center justify-between px-3 h-11 rounded-xl bg-secondary/40 border border-border/30 hover:bg-secondary/70 hover:border-primary/20 text-muted-foreground text-xs font-medium transition-all duration-300"
-        >
-          <div className="flex items-center gap-2">
-            <Search className="h-4 w-4 text-muted-foreground/60" />
-            <span className="text-muted-foreground/80 font-medium">Buscar en la app...</span>
-          </div>
-          <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-0.5 rounded border border-border/50 bg-background/50 px-1.5 font-mono text-[9px] font-bold text-muted-foreground">
-            <span>Alt</span><span>+</span><span>K</span>
-          </kbd>
-        </button>
+        <p className="text-[10px] font-bold text-muted-foreground/60 mt-1 tracking-wider uppercase">
+          {isRadiologia ? 'Control de Radiología Digital' : 'Registro digital de laboratorio'}
+        </p>
       </div>
 
       {/* Navigation Items */}
       <div className="flex-1 overflow-auto py-2 flex flex-col gap-1.5 px-4">
         <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest px-4 mb-2">Menú Principal</p>
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || (pathname === '/' && item.href === '/dashboard');
+        {activeItems.map((item) => {
+          const isActive = item.href.includes('?')
+            ? pathname === item.href.split('?')[0] && searchParams.get(item.href.split('?')[1].split('=')[0]) === item.href.split('?')[1].split('=')[1]
+            : pathname === item.href || (pathname === '/' && item.href === '/dashboard');
           return (
             <Link
               key={item.name}
@@ -103,7 +101,9 @@ export function Sidebar() {
               className={cn(
                 "group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 relative overflow-hidden",
                 isActive
-                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                  ? isRadiologia
+                    ? "bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-500/20"
+                    : "bg-primary text-primary-foreground shadow-md shadow-primary/20"
                   : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
               )}
             >
@@ -120,7 +120,12 @@ export function Sidebar() {
         {/* Minimalist User Section */}
         <div className="flex items-center justify-between px-3 py-2.5 bg-secondary/30 rounded-xl border border-border/20 h-12">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+            <div className={cn(
+              "w-8 h-8 rounded-lg flex items-center justify-center border",
+              isRadiologia
+                ? "bg-sky-500/10 border-sky-500/20 text-sky-500"
+                : "bg-primary/10 border-primary/20 text-primary"
+            )}>
               <User className="h-4 w-4" />
             </div>
             <span className="text-xs font-bold text-foreground leading-tight">Admin Laboratorio</span>

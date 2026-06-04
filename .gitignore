@@ -48,3 +48,6 @@ next-env.d.ts
 legacy/
 .env
 secrets.toml
+
+# Scratch folder
+/scratch/

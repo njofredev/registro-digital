@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Sidebar } from "@/components/layout/Sidebar";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { CommandMenu } from "@/components/CommandMenu";
+import { RootLayoutClient } from "@/components/layout/RootLayoutClient";
 
 export const metadata: Metadata = {
   title: {
@@ -32,16 +31,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Sidebar />
-          <main className="flex-1 overflow-y-auto bg-background/50 relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
-            <div className="p-8 max-w-[1600px] mx-auto w-full px-4 md:px-12 relative z-10">
-              {children}
-            </div>
-          </main>
-          <CommandMenu />
+          <RootLayoutClient>
+            {children}
+          </RootLayoutClient>
         </ThemeProvider>
       </body>
     </html>
   );
 }
+
