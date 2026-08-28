@@ -94,18 +94,31 @@ export function Sidebar() {
     <div className="w-72 bg-card/40 backdrop-blur-2xl border-r border-border/40 flex flex-col h-full shadow-[4px_0_24px_rgba(0,0,0,0.02)] relative z-20">
 
       {/* Header */}
-      <div className="p-8 pb-4 flex flex-col items-center justify-center text-center">
-        <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-4 border border-border/50 shadow-md overflow-hidden p-1.5 transition-transform hover:scale-105 duration-300">
-          <Image src="/logo_vec.svg" alt="Logo" width={82} height={82} quality={100} className="object-contain" />
+      <div className="p-6 pb-4 flex flex-col items-center justify-center text-center">
+        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-3.5 border border-border/50 shadow-md overflow-hidden p-1.5 transition-transform hover:scale-105 duration-300">
+          <Image src="/logo_vec.svg" alt="Logo" width={72} height={72} quality={100} className="object-contain" />
         </div>
-        <h2 className="text-xl font-bold tracking-tight text-foreground">Policlínico Tabancura</h2>
-        <p className="text-[10px] font-bold text-muted-foreground/60 mt-1 tracking-wider uppercase">
-          {isDerivaciones 
-            ? 'Registro de Derivaciones' 
-            : isRadiologia 
-              ? 'Control de Radiología Digital' 
-              : 'Registro digital de laboratorio'}
-        </p>
+        <h2 className="text-lg font-bold tracking-tight text-foreground">Policlínico Tabancura</h2>
+        
+        {/* System Identifier Badges */}
+        <div className="mt-2.5">
+          {isDerivaciones ? (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm shadow-emerald-500/10">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              Derivaciones
+            </div>
+          ) : isRadiologia ? (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-sky-500/15 text-sky-400 border border-sky-500/30 shadow-sm shadow-sky-500/10">
+              <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
+              Radiología
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 shadow-sm shadow-indigo-500/10">
+              <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
+              Registro General
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Navigation Items */}
@@ -147,13 +160,17 @@ export function Sidebar() {
           <div className="flex items-center gap-3">
             <div className={cn(
               "w-8 h-8 rounded-lg flex items-center justify-center border",
-              isRadiologia
-                ? "bg-sky-500/10 border-sky-500/20 text-sky-500"
-                : "bg-primary/10 border-primary/20 text-primary"
+              isDerivaciones
+                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                : isRadiologia
+                  ? "bg-sky-500/10 border-sky-500/20 text-sky-500"
+                  : "bg-primary/10 border-primary/20 text-primary"
             )}>
               <User className="h-4 w-4" />
             </div>
-            <span className="text-xs font-bold text-foreground leading-tight">Admin Laboratorio</span>
+            <span className="text-xs font-bold text-foreground leading-tight">
+              {isDerivaciones ? 'Admin Derivaciones' : isRadiologia ? 'Admin Radiología' : 'Admin Laboratorio'}
+            </span>
           </div>
         </div>
 
