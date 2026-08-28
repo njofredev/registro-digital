@@ -10,7 +10,7 @@ export const metadata = {
 
 export default async function DashboardPage() {
   const registros = await getRegistros();
-  
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -18,11 +18,11 @@ export default async function DashboardPage() {
           <BarChart3 className="w-8 h-8" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Métricas del Laboratorio</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Métricas del Laboratorio General</h1>
           <p className="text-muted-foreground mt-1">Indicadores de rendimiento, materiales y carga de trabajo por técnico.</p>
         </div>
       </div>
-      
+
       <DashboardClient data={registros} />
     </div>
   );
