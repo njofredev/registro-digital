@@ -65,6 +65,32 @@ export function CommandMenu() {
             <span>Exportar Reportes (PDF/Excel)</span>
           </CommandItem>
         </CommandGroup>
+        <CommandGroup heading="Derivaciones">
+          <CommandItem onSelect={() => runCommand(() => router.push("/derivaciones/dashboard"))} value="derivaciones dashboard metricas">
+            <BarChart2 className="mr-2 h-4 w-4" />
+            <span>Derivaciones - Dashboard</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => router.push("/derivaciones/ingreso"))} value="derivaciones ingreso nuevo caso">
+            <PlusCircle className="mr-2 h-4 w-4" />
+            <span>Derivaciones - Nuevo Ingreso</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => router.push("/derivaciones/visualizador"))} value="derivaciones buscador visualizador">
+            <Search className="mr-2 h-4 w-4" />
+            <span>Derivaciones - Buscador</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => router.push("/derivaciones/edicion"))} value="derivaciones edicion modificar">
+            <Edit3 className="mr-2 h-4 w-4" />
+            <span>Derivaciones - Edición</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => router.push("/derivaciones/entregas"))} value="derivaciones entregas agenda">
+            <Calendar className="mr-2 h-4 w-4" />
+            <span>Derivaciones - Agenda Entregas</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => router.push("/derivaciones/exportar"))} value="derivaciones exportar reportes excel">
+            <Download className="mr-2 h-4 w-4" />
+            <span>Derivaciones - Exportar Reportes</span>
+          </CommandItem>
+        </CommandGroup>
       </CommandList>
     </CommandDialog>
   )

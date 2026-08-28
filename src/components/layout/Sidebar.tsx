@@ -26,11 +26,28 @@ export function Sidebar() {
   const { theme, setTheme } = useTheme();
 
   const isRadiologia = pathname.startsWith('/radiologia');
-  const activeItems = isRadiologia ? [
+  const isDerivaciones = pathname.startsWith('/derivaciones');
+
+  const derivacionesItems = [
+    { name: 'Dashboard', href: '/derivaciones/dashboard', icon: BarChart2 },
+    { name: 'Nuevo Ingreso', href: '/derivaciones/ingreso', icon: PlusCircle },
+    { name: 'Buscador', href: '/derivaciones/visualizador', icon: Search },
+    { name: 'Edición', href: '/derivaciones/edicion', icon: Edit3 },
+    { name: 'Agenda Entregas', href: '/derivaciones/entregas', icon: Calendar },
+    { name: 'Exportar Reportes', href: '/derivaciones/exportar', icon: Download },
+  ];
+
+  const radiologiaItems = [
     { name: 'Dashboard', href: '/radiologia', icon: BarChart2 },
     { name: 'Ingreso', href: '/radiologia/ingreso', icon: PlusCircle },
     { name: 'Reportería', href: '/radiologia/reporteria', icon: Download },
-  ] : navItems;
+  ];
+
+  const activeItems = isDerivaciones 
+    ? derivacionesItems 
+    : isRadiologia 
+      ? radiologiaItems 
+      : navItems;
 
   // Dynamic greeting, time and date states
   const [time, setTime] = React.useState('');
@@ -83,17 +100,23 @@ export function Sidebar() {
         </div>
         <h2 className="text-xl font-bold tracking-tight text-foreground">Policlínico Tabancura</h2>
         <p className="text-[10px] font-bold text-muted-foreground/60 mt-1 tracking-wider uppercase">
-          {isRadiologia ? 'Control de Radiología Digital' : 'Registro digital de laboratorio'}
+          {isDerivaciones 
+            ? 'Registro de Derivaciones' 
+            : isRadiologia 
+              ? 'Control de Radiología Digital' 
+              : 'Registro digital de laboratorio'}
         </p>
       </div>
 
       {/* Navigation Items */}
       <div className="flex-1 overflow-auto py-2 flex flex-col gap-1.5 px-4">
-        <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest px-4 mb-2">Menú Principal</p>
+        <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest px-4 mb-2">
+          {isDerivaciones ? 'Menú Derivaciones' : isRadiologia ? 'Menú Radiología' : 'Menú Principal'}
+        </p>
         {activeItems.map((item) => {
           const isActive = item.href.includes('?')
             ? pathname === item.href.split('?')[0] && searchParams.get(item.href.split('?')[1].split('=')[0]) === item.href.split('?')[1].split('=')[1]
-            : pathname === item.href || (pathname === '/' && item.href === '/dashboard');
+            : pathname === item.href || (pathname === '/' && item.href === '/dashboard') || (pathname === '/derivaciones' && item.href === '/derivaciones/dashboard');
           return (
             <Link
               key={item.name}
@@ -101,9 +124,11 @@ export function Sidebar() {
               className={cn(
                 "group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 relative overflow-hidden",
                 isActive
-                  ? isRadiologia
-                    ? "bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-500/20"
-                    : "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                  ? isDerivaciones
+                    ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/20"
+                    : isRadiologia
+                      ? "bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-500/20"
+                      : "bg-primary text-primary-foreground shadow-md shadow-primary/20"
                   : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
               )}
             >

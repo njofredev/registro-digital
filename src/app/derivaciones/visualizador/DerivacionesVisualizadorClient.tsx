@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ESTADO_COLORS } from '@/lib/constants';
 import { Badge } from '@/components/ui/badge';
-import { Search, ChevronDown, ChevronUp, Stethoscope, User, MapPin, Wrench, Layers, FileText, Calendar, Box, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, User, MapPin, Wrench, Layers, FileText, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 const TOOTH_SVG_PATHS: Record<string, string> = {
   molar: "M28 22 C34 18, 44 24, 50 24 C56 24, 66 18, 72 22 C82 28, 80 48, 76 58 C72 68, 66 84, 58 84 C54 84, 52 74, 50 74 C48 74, 46 84, 42 84 C34 84, 28 68, 24 58 C20 48, 18 28, 28 22 Z",
@@ -23,7 +23,7 @@ function getToothSvgPath(num: number) {
 
 type Registro = any;
 
-export default function VisualizadorClient({ data }: { data: Registro[] }) {
+export default function DerivacionesVisualizadorClient({ data }: { data: Registro[] }) {
   const [search, setSearch] = useState('');
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -125,7 +125,7 @@ export default function VisualizadorClient({ data }: { data: Registro[] }) {
                   <TableCell colSpan={5} className="text-center py-16 text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Search className="h-8 w-8 text-muted-foreground/50" />
-                      <p>No se encontraron registros que coincidan con la búsqueda.</p>
+                      <p>No se encontraron registros de derivación que coincidan con la búsqueda.</p>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -168,7 +168,7 @@ export default function VisualizadorClient({ data }: { data: Registro[] }) {
                                 <div className="space-y-2 text-xs">
                                   <div className="flex justify-between py-1.5 border-b border-border/30">
                                     <span className="text-muted-foreground">Doctor Tratante:</span>
-                                    <span className="font-semibold text-foreground/90">{r.doctor || '-'}</span>
+                                    <span className="font-semibold text-foreground/90">{r.doctor || 'Antonio Alvear'}</span>
                                   </div>
                                   <div className="flex justify-between py-1.5 border-b border-border/30">
                                     <span className="text-muted-foreground">Técnico Asignado:</span>
@@ -367,4 +367,3 @@ export default function VisualizadorClient({ data }: { data: Registro[] }) {
     </div>
   );
 }
-
