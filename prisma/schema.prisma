@@ -74,3 +74,34 @@ model derivaciones {
   piezas          String?
 }
 
+model radiologia_derivaciones {
+  id                     Int     @id @default(autoincrement())
+  rut                    String?
+  nombre                 String?
+  apellido_paterno       String?
+  apellido_materno       String?
+  edad                   Int?
+  fecha_nacimiento       String?
+  doctor                 String?
+  especialidad           String?
+  dg_clinico             String?
+  sucursal               String?
+  observaciones          String?
+  fecha_toma_examen      String?
+  observaciones_operador String?
+  rx_panoramica          Int?
+  analisis_cefalometrico Int?
+  teleradiografia        Int?
+  tomografia_atm         Int?
+  tomografia_grupo_pieza Int?
+  tomografia_arcada      Int?
+  tomografia_total       Int?
+  rx_retroalveolar_total Int?
+  rx_mano                Int?
+  bitewing_bilateral     Int?
+  fecha_entrega          String?
+  radiologo_responsable  String?
+  proceso                String?
+  correo                 String?
+}
+

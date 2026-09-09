@@ -8,7 +8,16 @@ import { CommandMenu } from '../CommandMenu';
 
 export function RootLayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const isInicio = pathname === '/inicio';
 
+  if (isInicio) {
+    return (
+      <main className="flex-1 overflow-y-auto bg-background min-h-screen relative selection:bg-primary/30">
+        {children}
+        <CommandMenu />
+      </main>
+    );
+  }
 
   return (
     <>
