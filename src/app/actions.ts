@@ -106,7 +106,7 @@ export async function getDynamicOptions() {
     return {
       estado: ["Solicitado", "En progreso", "Aceptado", "Entregado", "Fresado", "Diseñado", "Listo"],
       doctor: ["Grace Martinson", "Pauline Heinriksen", "David Sandoval", "Antonio Alvear", "Sebastián Ortíz", "Antonia Pardo"],
-      tons_a_cargo: ["Sasha U.", "Natalia A.", "Martina T.", "Valentina S.", "Javiera P.", "Álvaro M.", "Isidora Q.", "Carolina H.", "Carolina S.", "SIN TONS", "Antonio Alvear", "TONS Tribunales", "Dr(a)"],
+      tons_a_cargo: ["Sasha U.", "Natalia A.", "Martina T.", "Valentina S.", "Javiera P.", "Álvaro M.", "Isidora Q.", "Carolina H.", "Carolina S.", "SIN TONS", "Antonio Alvear", "TONS Tribunales", "Dr(a)", "Fernanda Cortés", "Nicol Jara", "Cielo Estrada", "Paloma Pavez"],
       sucursal: ["Sucursal Los Tribunales", "Sucursal Vitacura"],
       material: ["Disilicato A3", "Hibrido A3", "Híbrido A2", "Disilicato A2", "Disilicato A1", "Disilicato", "Híbrido A1", "PMMA"],
       diseno: ["Modalidad Chairside", "Diseñado por David", "Diseñado por Pauline", "Diseñado por Antonio", "Diseñado por Grace", "Diseñado por Sebastian"],

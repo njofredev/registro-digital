@@ -1,6 +1,6 @@
 export const OPCIONES_ESTADO = ["Solicitado", "En progreso", "Aceptado", "Entregado", "Fresado", "Diseñado", "Listo"];
 export const OPCIONES_DOCTOR = ["Grace Martinson", "Pauline Heinriksen", "David Sandoval", "Antonio Alvear", "Sebastián Ortíz", "Antonia Pardo"];
-export const OPCIONES_TONS = ["Sasha U.", "Natalia A.", "Martina T.", "Valentina S.", "Javiera P.", "Álvaro M.", "Isidora Q.", "Carolina H.", "Carolina S.", "SIN TONS", "Antonio Alvear", "TONS Tribunales", "Dr(a)"];
+export const OPCIONES_TONS = ["Sasha U.", "Natalia A.", "Martina T.", "Valentina S.", "Javiera P.", "Álvaro M.", "Isidora Q.", "Carolina H.", "Carolina S.", "SIN TONS", "Antonio Alvear", "TONS Tribunales", "Dr(a)", "Fernanda Cortés", "Nicol Jara", "Cielo Estrada", "Paloma Pavez"];
 export const OPCIONES_SUCURSAL = ["Sucursal Los Tribunales", "Sucursal Vitacura"];
 export const OPCIONES_MATERIAL = ["Disilicato A3", "Hibrido A3", "Híbrido A2", "Disilicato A2", "Disilicato A1", "Disilicato", "Híbrido A1", "PMMA"];
 export const OPCIONES_DISENO = ["Modalidad Chairside", "Diseñado por David", "Diseñado por Pauline", "Diseñado por Antonio", "Diseñado por Grace", "Diseñado por Sebastian"];
